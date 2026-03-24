@@ -8,3 +8,6 @@ xcuserdata/
 # Python cache
 __pycache__/
 *.pyc
+
+# Cursor local rules/config
+.cursor/
