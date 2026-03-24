@@ -1,0 +1,11 @@
+---
+description: Protect existing UI design and allow additive changes only
+alwaysApply: true
+---
+
+# UI Design Protection
+
+- Do not modify existing UI design, layout, visual style, spacing, colors, or interaction patterns unless explicitly requested by the user in the current chat.
+- UI work is additive only: new features should be added without changing current UI behavior or appearance.
+- If a requested feature seems to require UI changes, propose a non-breaking additive approach first.
+- Ask for explicit confirmation before any UI refactor, replacement, or removal.
