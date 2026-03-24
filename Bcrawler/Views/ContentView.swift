@@ -73,10 +73,13 @@ private struct WindowCloseInterceptor: NSViewRepresentable {
 
     final class WindowCloseDelegate: NSObject, NSWindowDelegate {
         var isExportingProvider: () -> Bool = { false }
+        private var allowClose: Bool = false
 
         func windowShouldClose(_ sender: NSWindow) -> Bool {
+            if allowClose { return true }
             guard isExportingProvider() else { return true }
 
+            // Avoid blocking the window close path. Show a sheet asynchronously instead.
             let alert = NSAlert()
             alert.messageText = "正在下载，无法立即退出"
             alert.informativeText = "弹幕导出尚未完成。你可以取消退出并等待导出完成，或仍然退出应用。"
@@ -84,8 +87,18 @@ private struct WindowCloseInterceptor: NSViewRepresentable {
             alert.addButton(withTitle: "取消")
             alert.addButton(withTitle: "退出")
 
-            let result = alert.runModal()
-            return result == .alertSecondButtonReturn
+            alert.beginSheetModal(for: sender) { [weak self] response in
+                guard let self else { return }
+                if response == .alertSecondButtonReturn {
+                    self.allowClose = true
+                    DispatchQueue.main.async {
+                        sender.performClose(nil)
+                    }
+                }
+                // If "取消", do nothing and keep the app open.
+            }
+
+            return false
         }
     }
 }
