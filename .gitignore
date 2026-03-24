@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# Xcode user-specific files
+xcuserdata/
+*.xcuserstate
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Cursor local rules/config
+.cursor/
