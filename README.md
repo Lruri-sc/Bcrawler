@@ -1,6 +1,6 @@
 # Bcrawler
 
-macOS 番剧弹幕导出工具导出.ass文件配合生肉食用（SwiftUI + Python）。
+macOS 番剧弹幕导出工具导出.ass文件配合生肉食用。
 
 
  安装依赖：
