@@ -4,6 +4,7 @@ import ObjectiveC
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
+    @State private var viewModel = SearchViewModel()
 
     var body: some View {
         @Bindable var appState = appState
@@ -11,16 +12,19 @@ struct ContentView: View {
         NavigationSplitView {
             SidebarView()
         } detail: {
-            switch appState.selectedSection {
-            case .search:
-                SearchContentView()
-            case .recentExports:
-                RecentExportsView()
-            case .favorites:
-                FavoritesView()
-            case .settings:
-                SettingsView()
+            Group {
+                switch appState.selectedSection {
+                case .search:
+                    SearchContentView(viewModel: viewModel)
+                case .recentExports:
+                    RecentExportsView()
+                case .favorites:
+                    FavoritesView()
+                case .settings:
+                    SettingsView()
+                }
             }
+            .transaction { $0.disablesAnimations = true }
         }
         .navigationSplitViewStyle(.balanced)
         .background(WindowCloseInterceptor(isExporting: $appState.isExporting))

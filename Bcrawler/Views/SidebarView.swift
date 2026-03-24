@@ -2,7 +2,6 @@ import SwiftUI
 
 struct SidebarView: View {
     @Environment(AppState.self) private var appState
-    @State private var viewModel = SearchViewModel()
 
     var body: some View {
         @Bindable var appState = appState

@@ -16,11 +16,22 @@ final class SearchViewModel {
 
         do {
             let results = try await bridge.searchBangumi(keyword: keyword)
+            guard !Task.isCancelled else {
+                appState.isSearching = false
+                return
+            }
             await MainActor.run {
                 appState.searchResults = results
                 appState.isSearching = false
             }
+        } catch is CancellationError {
+            appState.isSearching = false
+            return
         } catch {
+            guard !Task.isCancelled else {
+                appState.isSearching = false
+                return
+            }
             await MainActor.run {
                 appState.searchError = error.localizedDescription
                 appState.isSearching = false
@@ -37,11 +48,22 @@ final class SearchViewModel {
 
         do {
             let episodes = try await bridge.fetchEpisodes(seasonId: bangumi.seasonId)
+            guard !Task.isCancelled else {
+                appState.isLoadingEpisodes = false
+                return
+            }
             await MainActor.run {
                 appState.episodes = episodes
                 appState.isLoadingEpisodes = false
             }
+        } catch is CancellationError {
+            appState.isLoadingEpisodes = false
+            return
         } catch {
+            guard !Task.isCancelled else {
+                appState.isLoadingEpisodes = false
+                return
+            }
             await MainActor.run {
                 appState.searchError = error.localizedDescription
                 appState.isLoadingEpisodes = false
