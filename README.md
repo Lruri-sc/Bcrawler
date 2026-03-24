@@ -8,17 +8,10 @@
 - Xcode 16+
 - Python 3（建议 3.9+）
 
-## 快速使用
 
-1. 安装 Python 依赖（在项目目录执行）  
+安装 Python 依赖（在项目目录执行）  
    `pip3 install -r Bcrawler/Scripts/requirements.txt`
-2. 用 Xcode 打开 `Bcrawler.xcodeproj`
-3. 确认 `Bcrawler/Scripts` 已打包到 App（`Copy Bundle Resources`）
-4. 运行 App（`⌘R`）
-5. 进入“设置”页，确认：
-   - Python 路径（默认 `/usr/bin/python3`）
-   - 导出目录（默认 Downloads）
-6. 回到搜索页，输入番剧名，选择分集后导出
+
 
 ## 功能流程
 
