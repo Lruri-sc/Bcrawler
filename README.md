@@ -59,32 +59,6 @@
   - Network Outgoing Connections
   - 用户选择目录读写权限
 
-## 如何打包 `.app`
-
-### 方式 A：开发调试包（最快）
-
-1. Xcode 顶部选择 `Any Mac` 或 `My Mac`
-2. 菜单 `Product` -> `Build`（或 `⌘B`）
-3. 菜单 `Product` -> `Show Build Folder in Finder`
-4. 在 `Build/Products/Debug/` 下找到 `Bcrawler.app`
-5. 右键 `Compress "Bcrawler.app"` 可得到 zip 发给别人测试
-
-### 方式 B：可分发发布包（推荐）
-
-1. 菜单 `Product` -> `Archive`
-2. Archive 完成后打开 Organizer，选择最新归档
-3. 点击 `Distribute App`
-4. 选择：
-   - 本机分发：`Copy App`
-   - 或公证发布：`Developer ID`（需要开发者证书）
-5. 导出后拿到正式 `Bcrawler.app`（或安装包）
-
-### 打包后必查
-
-- 首次打开若提示权限，去系统设置允许网络/文件访问
-- 打开设置页确认 Python 路径有效
-- 若目标机器没有同路径 Python，改为该机器的 Python 绝对路径
-
 ## 目录说明
 
 ```text
