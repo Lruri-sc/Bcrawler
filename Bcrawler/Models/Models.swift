@@ -48,6 +48,10 @@ struct Bangumi: Identifiable, Codable, Hashable {
     let score: Double             
     var isFavorite: Bool = false
 
+    var secureCoverURL: String {
+        coverURL.replacingOccurrences(of: "http://", with: "https://")
+    }
+
     enum CodingKeys: String, CodingKey {
         case id = "media_id"
         case seasonId = "season_id"
@@ -75,6 +79,10 @@ struct Episode: Identifiable, Codable {
     let badge: String             
     let coverURL: String          
     var isSelected: Bool = true   
+
+    var secureCoverURL: String {
+        coverURL.replacingOccurrences(of: "http://", with: "https://")
+    }
 
     enum CodingKeys: String, CodingKey {
         case id = "ep_id"

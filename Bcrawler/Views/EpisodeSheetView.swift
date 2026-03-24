@@ -6,18 +6,14 @@ struct EpisodeSheetView: View {
     let viewModel: SearchViewModel
 
     var body: some View {
-        @Bindable var appState = appState
-
         NavigationStack {
             VStack(spacing: 0) {
-                // Bangumi header
                 if let bangumi = appState.selectedBangumi {
                     BangumiHeaderView(bangumi: bangumi)
                 }
 
                 Divider()
 
-                // Episode list
                 if appState.isLoadingEpisodes {
                     Spacer()
                     ProgressView("加载集数...")
@@ -28,13 +24,14 @@ struct EpisodeSheetView: View {
 
                 Divider()
 
-                // Bottom bar: export directory + export button
-                ExportBarView(viewModel: viewModel)
+                ExportBarView(viewModel: viewModel, dismissSheet: dismiss)
             }
             .frame(minWidth: 600, minHeight: 500)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("关闭") { dismiss() }
+                    Button("关闭") {
+                        dismiss()
+                    }
                 }
             }
         }
@@ -48,8 +45,7 @@ struct BangumiHeaderView: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            // Cover thumbnail
-            AsyncImage(url: URL(string: bangumi.coverURL)) { phase in
+            AsyncImage(url: URL(string: bangumi.secureCoverURL)) { phase in
                 switch phase {
                 case .success(let image):
                     image
@@ -111,7 +107,6 @@ struct EpisodeListView: View {
         @Bindable var appState = appState
 
         VStack(spacing: 0) {
-            // Select all toggle
             HStack {
                 Toggle("全选", isOn: Binding(
                     get: { allSelected },
@@ -135,7 +130,6 @@ struct EpisodeListView: View {
 
             Divider()
 
-            // Episodes
             List {
                 ForEach($appState.episodes) { $episode in
                     HStack(spacing: 12) {
@@ -168,12 +162,12 @@ struct EpisodeListView: View {
 struct ExportBarView: View {
     @Environment(AppState.self) private var appState
     let viewModel: SearchViewModel
+    var dismissSheet: DismissAction
 
     var body: some View {
         @Bindable var appState = appState
 
         HStack(spacing: 16) {
-            // Export directory picker
             HStack(spacing: 8) {
                 Image(systemName: "folder")
                     .foregroundStyle(.secondary)
@@ -191,19 +185,12 @@ struct ExportBarView: View {
 
             Spacer()
 
-            // Progress indicator
-            if appState.isExporting {
-                ProgressView(value: appState.exportProgress) {
-                    Text(appState.exportStatusMessage)
-                        .font(.caption)
-                }
-                .frame(maxWidth: 200)
-            }
-
-            // Export button
             Button {
-                Task {
-                    await viewModel.exportSelected(appState: appState)
+                dismissSheet()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    Task {
+                        await viewModel.exportSelected(appState: appState)
+                    }
                 }
             } label: {
                 Label("开始导出", systemImage: "square.and.arrow.down")

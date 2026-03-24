@@ -54,6 +54,7 @@ final class SearchViewModel {
     func exportSelected(appState: AppState) async {
         let selectedEpisodes = appState.episodes.filter { $0.isSelected }
         guard !selectedEpisodes.isEmpty else { return }
+        var lastProgressUIUpdate = Date.distantPast
 
         appState.isExporting = true
         appState.exportProgress = 0
@@ -65,12 +66,21 @@ final class SearchViewModel {
                 episodes: selectedEpisodes,
                 outputDirectory: appState.exportDirectory
             ) { current, total, episode, status in
+                let now = Date()
+                let shouldForceUpdate = (status == "complete" || status == "error" || current == total)
+                guard shouldForceUpdate || now.timeIntervalSince(lastProgressUIUpdate) >= 0.12 else {
+                    return
+                }
+                lastProgressUIUpdate = now
+
                 Task { @MainActor in
+                    guard total > 0 else { return }
                     appState.exportProgress = Double(current) / Double(total)
                     appState.exportStatusMessage = "正在导出第 \(current)/\(total) 话: \(episode)"
 
-                    // Update individual task status
-                    if let idx = appState.exportTasks.firstIndex(where: { $0.episode.cid == selectedEpisodes[current - 1].cid }) {
+                    if current >= 1,
+                       current <= selectedEpisodes.count,
+                       let idx = appState.exportTasks.firstIndex(where: { $0.episode.cid == selectedEpisodes[current - 1].cid }) {
                         switch status {
                         case "downloading":
                             appState.exportTasks[idx].status = .downloading
@@ -92,7 +102,6 @@ final class SearchViewModel {
                 appState.exportProgress = 1.0
                 appState.exportStatusMessage = "导出完成"
 
-                // Add to recent exports
                 if let bangumi = appState.selectedBangumi {
                     let recent = RecentExport(
                         bangumiTitle: bangumi.title,
