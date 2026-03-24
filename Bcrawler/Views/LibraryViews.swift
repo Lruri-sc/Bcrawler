@@ -1,6 +1,5 @@
 import SwiftUI
 
-// MARK: - Recent Exports
 
 struct RecentExportsView: View {
     @Environment(AppState.self) private var appState
@@ -50,7 +49,6 @@ struct RecentExportsView: View {
     }
 }
 
-// MARK: - Favorites
 
 struct FavoritesView: View {
     @Environment(AppState.self) private var appState

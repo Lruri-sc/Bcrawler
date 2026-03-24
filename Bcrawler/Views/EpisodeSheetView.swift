@@ -38,7 +38,6 @@ struct EpisodeSheetView: View {
     }
 }
 
-// MARK: - Bangumi Header
 
 struct BangumiHeaderView: View {
     let bangumi: Bangumi
@@ -94,7 +93,6 @@ struct BangumiHeaderView: View {
     }
 }
 
-// MARK: - Episode List
 
 struct EpisodeListView: View {
     @Environment(AppState.self) private var appState
@@ -157,7 +155,6 @@ struct EpisodeListView: View {
     }
 }
 
-// MARK: - Export Bar
 
 struct ExportBarView: View {
     @Environment(AppState.self) private var appState

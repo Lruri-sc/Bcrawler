@@ -81,7 +81,6 @@ private struct WindowCloseInterceptor: NSViewRepresentable {
         func windowShouldClose(_ sender: NSWindow) -> Bool {
             guard isExportingProvider() else { return true }
 
-            // Use app-modal alert instead of sheet to avoid sheet teardown constraint loops.
             let alert = NSAlert()
             alert.messageText = "正在下载，无法立即退出"
             alert.informativeText = "弹幕导出尚未完成。你可以取消退出并等待导出完成，或仍然退出应用。"

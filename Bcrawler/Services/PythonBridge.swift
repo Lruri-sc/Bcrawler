@@ -1,8 +1,5 @@
 import Foundation
 
-/// Bridges Swift ↔ Python via Process + stdout JSON protocol.
-/// Each Python script writes one JSON object per line to stdout.
-/// Swift reads lines asynchronously and decodes them.
 actor PythonBridge {
     private let pythonPath: String
     private let scriptsDirectory: URL
@@ -16,9 +13,7 @@ actor PythonBridge {
         }
     }
 
-    // MARK: - Search Bangumi
 
-    /// Calls search.py with a keyword, returns parsed Bangumi array
     func searchBangumi(keyword: String) async throws -> [Bangumi] {
         let script = scriptsDirectory.appendingPathComponent("search.py")
         let output = try await runScript(script.path, arguments: ["--keyword", keyword])
@@ -32,9 +27,7 @@ actor PythonBridge {
         return results
     }
 
-    // MARK: - Fetch Episodes
 
-    /// Calls fetch_episodes.py with season_id, returns Episode array
     func fetchEpisodes(seasonId: Int) async throws -> [Episode] {
         let script = scriptsDirectory.appendingPathComponent("fetch_episodes.py")
         let output = try await runScript(script.path, arguments: ["--season-id", String(seasonId)])
@@ -48,10 +41,7 @@ actor PythonBridge {
         return episodes
     }
 
-    // MARK: - Batch Export Danmaku
 
-    /// Calls fetch_danmaku.py with cid list + output dir.
-    /// Streams progress via onProgress callback.
     func exportDanmaku(
         episodes: [Episode],
         outputDirectory: URL,
@@ -59,7 +49,6 @@ actor PythonBridge {
     ) async throws {
         let script = scriptsDirectory.appendingPathComponent("fetch_danmaku.py")
 
-        // Pass cids as comma-separated, episode titles as JSON for filenames
         let cidList = episodes.map { String($0.cid) }.joined(separator: ",")
         let titleList = episodes.map { $0.displayName }
         let titlesJSON = try JSONEncoder().encode(titleList)
@@ -73,7 +62,6 @@ actor PythonBridge {
                 "--output", outputDirectory.path
             ],
             onLine: { line in
-                // Each line is a JSON progress message
                 guard let data = line.data(using: .utf8),
                       let msg = try? JSONDecoder().decode(ProgressMessage.self, from: data)
                 else { return }
@@ -83,10 +71,7 @@ actor PythonBridge {
         )
     }
 
-    // MARK: - Internal
 
-    /// Run a script and collect all stdout into a single string.
-    /// Supports cooperative cancellation — terminates the process if the Task is cancelled.
     private func runScript(_ path: String, arguments: [String]) async throws -> String {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: pythonPath)
@@ -128,7 +113,6 @@ actor PythonBridge {
         }
     }
 
-    /// Run a script and stream stdout line-by-line (for progress)
     private func runStreamingScript(
         _ path: String,
         arguments: [String],
@@ -143,14 +127,12 @@ actor PythonBridge {
         process.standardOutput = pipe
         process.standardError = errorPipe
 
-        // Read stdout line by line on a background thread
         pipe.fileHandleForReading.readabilityHandler = { handle in
             let data = handle.availableData
             guard !data.isEmpty,
                   let str = String(data: data, encoding: .utf8)
             else { return }
 
-            // May contain multiple lines
             let lines = str.components(separatedBy: .newlines)
             for line in lines where !line.isEmpty {
                 onLine(line)
@@ -159,7 +141,6 @@ actor PythonBridge {
 
         try process.run()
 
-        // Await completion
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             process.terminationHandler = { _ in
                 continuation.resume()
@@ -176,7 +157,6 @@ actor PythonBridge {
     }
 }
 
-// MARK: - Supporting Types
 
 private struct ProgressMessage: Codable {
     let current: Int

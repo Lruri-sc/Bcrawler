@@ -5,7 +5,6 @@ import Observation
 final class SearchViewModel {
     private let bridge = PythonBridge()
 
-    // MARK: - Search
 
     func search(keyword: String, appState: AppState) async {
         guard !keyword.trimmingCharacters(in: .whitespaces).isEmpty else { return }
@@ -39,7 +38,6 @@ final class SearchViewModel {
         }
     }
 
-    // MARK: - Load Episodes
 
     func loadEpisodes(for bangumi: Bangumi, appState: AppState) async {
         appState.selectedBangumi = bangumi
@@ -71,7 +69,6 @@ final class SearchViewModel {
         }
     }
 
-    // MARK: - Export
 
     func exportSelected(appState: AppState) async {
         let selectedEpisodes = appState.episodes.filter { $0.isSelected }

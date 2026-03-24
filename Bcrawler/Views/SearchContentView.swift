@@ -88,7 +88,6 @@ struct SearchContentView: View {
     }
 }
 
-// MARK: - Bangumi Card (Apple TV style rounded rect with cover)
 
 struct BangumiCardView: View {
     let bangumi: Bangumi
