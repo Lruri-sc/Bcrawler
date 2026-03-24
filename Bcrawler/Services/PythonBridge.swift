@@ -85,7 +85,8 @@ actor PythonBridge {
 
     // MARK: - Internal
 
-    /// Run a script and collect all stdout into a single string
+    /// Run a script and collect all stdout into a single string.
+    /// Supports cooperative cancellation — terminates the process if the Task is cancelled.
     private func runScript(_ path: String, arguments: [String]) async throws -> String {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: pythonPath)
@@ -98,21 +99,33 @@ actor PythonBridge {
 
         try process.run()
 
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                process.terminationHandler = { _ in
+                    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+                    let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
 
-        process.waitUntilExit()
+                    if process.terminationStatus != 0 {
+                        let errorString = String(data: errorData, encoding: .utf8) ?? "Unknown error"
+                        if process.terminationStatus == 15 || process.terminationStatus == 9 {
+                            continuation.resume(throwing: CancellationError())
+                        } else {
+                            continuation.resume(throwing: BridgeError.scriptFailed(code: Int(process.terminationStatus), message: errorString))
+                        }
+                        return
+                    }
 
-        if process.terminationStatus != 0 {
-            let errorString = String(data: errorData, encoding: .utf8) ?? "Unknown error"
-            throw BridgeError.scriptFailed(code: Int(process.terminationStatus), message: errorString)
+                    guard let output = String(data: data, encoding: .utf8) else {
+                        continuation.resume(throwing: BridgeError.invalidOutput)
+                        return
+                    }
+
+                    continuation.resume(returning: output.trimmingCharacters(in: .whitespacesAndNewlines))
+                }
+            }
+        } onCancel: {
+            if process.isRunning { process.terminate() }
         }
-
-        guard let output = String(data: data, encoding: .utf8) else {
-            throw BridgeError.invalidOutput
-        }
-
-        return output.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     /// Run a script and stream stdout line-by-line (for progress)

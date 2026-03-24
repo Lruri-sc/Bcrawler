@@ -2,9 +2,8 @@ import SwiftUI
 
 struct SearchContentView: View {
     @Environment(AppState.self) private var appState
-    @State private var viewModel = SearchViewModel()
+    let viewModel: SearchViewModel
     @State private var showingEpisodeSheet = false
-    @State private var searchTask: Task<Void, Never>?
 
     private let columns = [
         GridItem(.adaptive(minimum: 150, maximum: 200), spacing: 20)
@@ -24,6 +23,7 @@ struct SearchContentView: View {
                     HStack {
                         Spacer()
                         ProgressView("搜索中...")
+                            .allowsHitTesting(false)
                             .padding(.top, 100)
                         Spacer()
                     }
@@ -34,7 +34,9 @@ struct SearchContentView: View {
                         Text(error)
                     } actions: {
                         Button("重试") {
-                            triggerSearch()
+                            Task {
+                                await viewModel.search(keyword: appState.searchQuery, appState: appState)
+                            }
                         }
                     }
                 } else if appState.searchResults.isEmpty && !appState.searchQuery.isEmpty {
@@ -70,33 +72,18 @@ struct SearchContentView: View {
             }
             .padding(.top)
         }
-        .onAppear {
-            if !appState.searchQuery.trimmingCharacters(in: .whitespaces).isEmpty
-                && appState.searchResults.isEmpty
-                && !appState.isSearching {
-                triggerSearch()
-            }
-        }
-        .onChange(of: appState.searchQuery) { _, newValue in
-            searchTask?.cancel()
-            guard !newValue.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-            searchTask = Task {
-                try? await Task.sleep(for: .milliseconds(600))
-                guard !Task.isCancelled else { return }
-                triggerSearch()
-            }
+        .task(id: appState.searchQuery) {
+            let query = appState.searchQuery.trimmingCharacters(in: .whitespaces)
+            guard !query.isEmpty else { return }
+            try? await Task.sleep(for: .milliseconds(600))
+            guard !Task.isCancelled else { return }
+            await viewModel.search(keyword: query, appState: appState)
         }
         .sheet(isPresented: $showingEpisodeSheet) {
             if appState.selectedBangumi != nil {
                 EpisodeSheetView(viewModel: viewModel)
                     .environment(appState)
             }
-        }
-    }
-
-    private func triggerSearch() {
-        Task {
-            await viewModel.search(keyword: appState.searchQuery, appState: appState)
         }
     }
 }
@@ -127,7 +114,6 @@ struct BangumiCardView: View {
                             }
                     case .empty:
                         Color(.quaternarySystemFill)
-                            .overlay { ProgressView() }
                     @unknown default:
                         EmptyView()
                     }
@@ -153,6 +139,7 @@ struct BangumiCardView: View {
                     y: isHovered ? 6 : 3
                 )
                 .scaleEffect(isHovered ? 1.02 : 1.0)
+                .animation(.easeInOut(duration: 0.2), value: isHovered)
 
                 Text(bangumi.title)
                     .font(.callout)
@@ -166,10 +153,9 @@ struct BangumiCardView: View {
             }
         }
         .buttonStyle(.plain)
+        .contentShape(Rectangle())
         .onHover { hovering in
-            withAnimation(.easeInOut(duration: 0.2)) {
-                isHovered = hovering
-            }
+            isHovered = hovering
         }
     }
 }
