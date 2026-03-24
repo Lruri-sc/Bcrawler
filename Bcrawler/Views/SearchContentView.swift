@@ -13,7 +13,6 @@ struct SearchContentView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                // Header
                 if !appState.searchQuery.isEmpty {
                     Text("搜索")
                         .font(.largeTitle)
@@ -21,7 +20,6 @@ struct SearchContentView: View {
                         .padding(.horizontal)
                 }
 
-                // Search results grid
                 if appState.isSearching {
                     HStack {
                         Spacer()
@@ -42,7 +40,6 @@ struct SearchContentView: View {
                 } else if appState.searchResults.isEmpty && !appState.searchQuery.isEmpty {
                     ContentUnavailableView.search(text: appState.searchQuery)
                 } else if appState.searchResults.isEmpty {
-                    // Empty state - prompt user
                     VStack(spacing: 16) {
                         Spacer(minLength: 80)
                         Image(systemName: "tv")
@@ -58,7 +55,6 @@ struct SearchContentView: View {
                     }
                     .frame(maxWidth: .infinity)
                 } else {
-                    // Results grid - Apple TV style cards
                     LazyVGrid(columns: columns, spacing: 20) {
                         ForEach(appState.searchResults) { bangumi in
                             BangumiCardView(bangumi: bangumi) {
@@ -75,7 +71,6 @@ struct SearchContentView: View {
             .padding(.top)
         }
         .onAppear {
-            // 如果有搜索词但没结果，自动触发搜索
             if !appState.searchQuery.trimmingCharacters(in: .whitespaces).isEmpty
                 && appState.searchResults.isEmpty
                 && !appState.isSearching {
@@ -117,8 +112,7 @@ struct BangumiCardView: View {
     var body: some View {
         Button(action: onTap) {
             VStack(alignment: .leading, spacing: 8) {
-                // Cover image
-                AsyncImage(url: URL(string: bangumi.coverURL)) { phase in
+                AsyncImage(url: URL(string: bangumi.secureCoverURL)) { phase in
                     switch phase {
                     case .success(let image):
                         image
@@ -160,14 +154,12 @@ struct BangumiCardView: View {
                 )
                 .scaleEffect(isHovered ? 1.02 : 1.0)
 
-                // Title
                 Text(bangumi.title)
                     .font(.callout)
                     .fontWeight(.medium)
                     .lineLimit(2)
                     .foregroundStyle(.primary)
 
-                // Subtitle
                 Text("\(bangumi.areas) · \(bangumi.totalEpisodes)话")
                     .font(.caption)
                     .foregroundStyle(.secondary)
